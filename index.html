@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#172539">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Hoffmann GM. Five minutes. Hurt arrivals, rooms that will miss, comps. Sample day — not a live feed. Not official hotel software.">
+  <title>Hoffmann</title>
+  <!-- hoffmann-board-v1 -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <style>
+    :root {
+      --bg: #172539;
+      --fg: #FFFFFF;
+      --mute: #A3A3A3;
+      --line: #2a3a50;
+      --chip: #121a28;
+      --amber: #A96139;
+      --hurt: #c46a48;
+      --miss: #c4a06a;
+      --comp: #8a9a7a;
+      --pad: max(1.05rem, env(safe-area-inset-left));
+      --pad-r: max(1.05rem, env(safe-area-inset-right));
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    body {
+      min-height: 100dvh;
+      padding: max(0.7rem, env(safe-area-inset-top)) var(--pad-r) max(2.2rem, env(safe-area-inset-bottom)) var(--pad);
+      max-width: 28rem;
+      margin: 0 auto;
+    }
+    button, input, textarea {
+      font: inherit;
+      color: inherit;
+    }
+    button {
+      appearance: none;
+      background: var(--chip);
+      border: 1px solid var(--line);
+      color: var(--fg);
+      border-radius: 0.4rem;
+      min-height: 2.6rem;
+      padding: 0.4rem 0.75rem;
+      font-weight: 700;
+    }
+    button:active { filter: brightness(1.15); }
+    h1, h2, p { margin: 0; }
+
+    .kicker {
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+    .sub {
+      margin-top: 0.2rem;
+      font-size: clamp(1.55rem, 7vw, 2rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+    }
+    .banner {
+      margin: 0.85rem 0 0.9rem;
+      padding: 0.45rem 0.6rem;
+      border: 1px dashed var(--amber);
+      color: var(--amber);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1.35;
+    }
+    .banner[hidden] { display: none; }
+
+    .mast {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .peaks {
+      flex: 0 0 auto;
+      width: 2.15rem;
+      height: 0.95rem;
+      color: var(--amber);
+    }
+    #property {
+      font-size: clamp(1.7rem, 8vw, 2.15rem);
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      line-height: 1.1;
+      outline: none;
+      min-height: 1.2em;
+      border-bottom: 1px solid transparent;
+      text-transform: uppercase;
+    }
+    #property:focus { border-bottom-color: var(--line); }
+    .date {
+      margin-top: 0.2rem;
+      font-size: 1.05rem;
+      font-weight: 650;
+      color: var(--mute);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.5rem;
+      margin: 1.1rem 0 0.4rem;
+      padding: 0.85rem 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .stat label {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+    .stat input {
+      width: 100%;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      font-size: clamp(1.7rem, 8vw, 2.2rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      min-height: 2.4rem;
+    }
+    .hint {
+      margin: 0.55rem 0 1.3rem;
+      font-size: 0.78rem;
+      color: var(--mute);
+      line-height: 1.35;
+    }
+
+    section { margin-bottom: 1.55rem; }
+    .sec-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.15rem;
+      border-bottom: 2px solid var(--fg);
+      padding-bottom: 0.25rem;
+    }
+    .sec-head h2 {
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .sec-head .add {
+      min-height: 2.2rem;
+      min-width: 2.2rem;
+      padding: 0;
+      font-size: 1.35rem;
+      line-height: 1;
+      background: transparent;
+      border: 0;
+    }
+    #hurt-h { color: var(--hurt); border-bottom-color: var(--hurt); }
+    #miss-h { color: var(--miss); border-bottom-color: var(--miss); }
+    #comp-h { color: var(--comp); border-bottom-color: var(--comp); }
+
+    .row {
+      display: flex;
+      align-items: stretch;
+      gap: 0.45rem;
+      width: 100%;
+      border-bottom: 1px solid var(--line);
+      padding: 0.55rem 0;
+    }
+    .check-hit {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      width: auto;
+      min-width: 0;
+      text-align: left;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      padding: 0.3rem 0;
+      min-height: 3.2rem;
+    }
+    .box {
+      flex: 0 0 2.75rem;
+      width: 2.75rem;
+      height: 2.75rem;
+      margin-top: 0.12rem;
+      border: 2px solid var(--mute);
+      border-radius: 0.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.7rem;
+      font-weight: 800;
+      line-height: 1;
+      color: transparent;
+      background: transparent;
+    }
+    .row.checked .box {
+      background: var(--amber);
+      border-color: var(--amber);
+      color: var(--bg);
+    }
+    .row.checked .room { color: var(--amber); }
+    .row.checked .why { color: #A3A3A3; }
+    .copy { min-width: 0; flex: 1; }
+    .row .room {
+      font-size: clamp(1.65rem, 7.4vw, 2.15rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.02;
+    }
+    .row .why {
+      margin-top: 0.22rem;
+      font-size: clamp(1.05rem, 4.4vw, 1.22rem);
+      font-weight: 650;
+      line-height: 1.25;
+      color: #E8E8E8;
+    }
+    .row .meta {
+      margin-top: 0.18rem;
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: var(--mute);
+      letter-spacing: 0.01em;
+    }
+    .edit {
+      align-self: center;
+      flex: 0 0 auto;
+      min-width: 2.7rem;
+      min-height: 2.7rem;
+      padding: 0.4rem 0.55rem;
+      background: var(--chip);
+      border: 1px solid var(--line);
+      border-radius: 0.4rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+    .tag {
+      display: inline-block;
+      margin-left: 0.4rem;
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--amber);
+      vertical-align: 0.22em;
+    }
+    .row.cleared { opacity: 0.45; }
+    .row.cleared .room { text-decoration: line-through; }
+    .empty {
+      padding: 0.8rem 0 0.4rem;
+      color: var(--mute);
+      font-size: 1rem;
+      font-weight: 650;
+    }
+
+    footer {
+      margin-top: 0.5rem;
+      padding-top: 0.9rem;
+      border-top: 1px solid var(--line);
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.7rem;
+    }
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin: 0.35rem 0 0.8rem;
+    }
+    .toggle input { width: 1.15rem; height: 1.15rem; }
+    .foot {
+      font-size: 0.8rem;
+      color: var(--mute);
+      line-height: 1.4;
+    }
+
+    #sheet {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.62);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 20;
+      padding: 0;
+    }
+    #sheet[hidden] { display: none; }
+    .panel {
+      width: 100%;
+      max-width: 28rem;
+      background: #121a28;
+      border-top: 1px solid var(--line);
+      padding: 1rem var(--pad) max(1.2rem, env(safe-area-inset-bottom));
+    }
+    .panel h3 {
+      margin: 0 0 0.8rem;
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      margin-bottom: 0.65rem;
+    }
+    .field span {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+    .field input, .field textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 0.35rem;
+      padding: 0.65rem 0.7rem;
+      font-size: 16px;
+    }
+    .field textarea { min-height: 4.2rem; resize: vertical; }
+    .panel-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.4rem;
+    }
+    .panel-actions .primary {
+      background: var(--fg);
+      color: var(--bg);
+      border-color: var(--fg);
+    }
+    .panel-actions .danger {
+      margin-left: auto;
+      color: var(--hurt);
+      background: transparent;
+      border-color: #4a2a24;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="kicker">GM</p>
+    <p class="sub">Five minutes</p>
+    <div class="banner" id="sample-banner">SAMPLE DAY · invented names · not a live feed · this device only</div>
+    <div class="mast">
+      <svg class="peaks" viewBox="0 0 48 20" aria-hidden="true">
+        <path fill="currentColor" d="M2 18 L10 5 L16 14 L24 2 L32 14 L38 6 L46 18 Z"/>
+      </svg>
+      <h1 id="property" contenteditable="true" spellcheck="false" aria-label="Property name">THE HOFFMANN</h1>
+    </div>
+    <p class="date" id="date"></p>
+    <div class="stats">
+      <div class="stat">
+        <label for="occ">Occ</label>
+        <input id="occ" inputmode="numeric" aria-label="Occupancy percent">
+      </div>
+      <div class="stat">
+        <label for="arrivals">In</label>
+        <input id="arrivals" inputmode="numeric" aria-label="Arrivals count">
+      </div>
+      <div class="stat">
+        <label for="departures">Out</label>
+        <input id="departures" inputmode="numeric" aria-label="Departures count">
+      </div>
+    </div>
+    <p class="hint">Numbers you set. Not a PMS.</p>
+  </header>
+
+  <main>
+    <section aria-labelledby="hurt-h">
+      <div class="sec-head" id="hurt-h">
+        <h2>Hurt arrivals</h2>
+        <button class="add" type="button" data-add="hurt" aria-label="Add hurt arrival">+</button>
+      </div>
+      <div id="hurt"></div>
+    </section>
+    <section aria-labelledby="miss-h">
+      <div class="sec-head" id="miss-h">
+        <h2>Rooms that will miss</h2>
+        <button class="add" type="button" data-add="miss" aria-label="Add room that will miss">+</button>
+      </div>
+      <div id="miss"></div>
+    </section>
+    <section aria-labelledby="comp-h">
+      <div class="sec-head" id="comp-h">
+        <h2>Comps</h2>
+        <button class="add" type="button" data-add="comp" aria-label="Add comp">+</button>
+      </div>
+      <div id="comp"></div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="actions">
+      <button type="button" id="use-sample">Use sample</button>
+      <button type="button" id="clear-mine">Clear for my property</button>
+    </div>
+    <label class="toggle"><input type="checkbox" id="show-cleared"> Show cleared</label>
+    <p class="foot">SAMPLE guests are invented. Tap a room to check it off for the morning. Edit still edits. Dismiss hides a line; it is not gone. Nothing here is a reservation system. Not Hoffmann, Crestline, or Hilton software.</p>
+  </footer>
+
+  <div id="sheet" hidden>
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <h3 id="sheet-title">Edit</h3>
+      <form id="sheet-form">
+        <label class="field" id="f-room"><span>Room</span><input name="room" autocomplete="off"></label>
+        <label class="field" id="f-who"><span>Who</span><input name="who" autocomplete="off"></label>
+        <label class="field" id="f-what"><span>What</span><input name="what" autocomplete="off"></label>
+        <label class="field" id="f-why"><span>Why</span><textarea name="why" rows="3"></textarea></label>
+        <label class="field" id="f-yes"><span>Who said yes</span><input name="approvedBy" autocomplete="off"></label>
+        <div class="panel-actions">
+          <button type="submit" class="primary">Save</button>
+          <button type="button" id="sheet-cancel">Cancel</button>
+          <button type="button" class="danger" id="sheet-dismiss">Dismiss</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const KEY = 'hoffmann-board-v1';
+
+    const SAMPLE = {
+      sample: true,
+      property: 'THE HOFFMANN',
+      occupancy: '91%',
+      arrivals: '36',
+      departures: '33',
+      showCleared: false,
+      hurt: [
+        { id: 's-h1', room: '104', why: 'VIP. Last stay: AC died at 2am. Returning.', sample: true, cleared: false },
+        { id: 's-h2', room: '212 / 214', why: 'Connecting. Anniversary. Late, 11pm.', sample: true, cleared: false },
+        { id: 's-h3', room: '118', why: 'Accessible. Roll-in. Confirm shower chair.', sample: true, cleared: false },
+        { id: 's-h4', room: '308', why: 'Auth flag. No card on file. Cash.', sample: true, cleared: false },
+        { id: 's-h5', room: '221', why: 'Wedding block lead. Party of 8. First van 2pm.', sample: true, cleared: false },
+        { id: 's-h6', room: '414', why: 'Repeat. Last note: desk talked over me.', sample: true, cleared: false }
+      ],
+      miss: [
+        { id: 's-m1', room: '307', why: 'Vacant-dirty. 2pm in. HK not started.', sample: true, cleared: false },
+        { id: 's-m2', room: '414', why: 'OOO. Pipe leak. Out through Tuesday.', sample: true, cleared: false },
+        { id: 's-m3', room: '119', why: 'Inspect fail. Carpet stain. Reclean.', sample: true, cleared: false },
+        { id: 's-m4', room: '401', why: 'Long-stay out 11am. Same-day in 3pm.', sample: true, cleared: false },
+        { id: 's-m5', room: '225', why: 'Held for walk. Not released.', sample: true, cleared: false },
+        { id: 's-m6', room: '340', why: 'Early out. Floor already done. Still dirty.', sample: true, cleared: false }
+      ],
+      comp: [
+        { id: 's-c1', who: 'Calder', room: '104', what: 'Suite upgrade', why: 'Last stay AC', approvedBy: 'GM', sample: true, cleared: false },
+        { id: 's-c2', who: 'Voss', room: '212', what: 'Champagne', why: 'Anniversary', approvedBy: 'FOM', sample: true, cleared: false },
+        { id: 's-c3', who: 'Ingram', room: '118', what: 'Valet', why: 'Wait for accessible', approvedBy: 'Night audit', sample: true, cleared: false },
+        { id: 's-c4', who: 'Pell', room: '221', what: 'Breakfast ×8', why: 'Van late', approvedBy: 'GM', sample: true, cleared: false }
+      ]
+    };
+
+    const EMPTY = {
+      sample: false,
+      property: 'Property',
+      occupancy: '',
+      arrivals: '',
+      departures: '',
+      showCleared: false,
+      hurt: [],
+      miss: [],
+      comp: []
+    };
+
+    const LISTS = {
+      hurt: { title: 'Hurt arrival', fields: ['room', 'why'] },
+      miss: { title: 'Room that will miss', fields: ['room', 'why'] },
+      comp: { title: 'Comp', fields: ['who', 'what', 'why', 'approvedBy', 'room'] }
+    };
+
+    let state = load();
+    let editing = null;
+
+    function clone(x) { return JSON.parse(JSON.stringify(x)); }
+
+    function normalizeList(arr) {
+      if (!Array.isArray(arr)) return [];
+      return arr.map((it) => {
+        if (!it || typeof it !== 'object') return it;
+        return Object.assign({}, it, { cleared: !!it.cleared, checked: !!it.checked });
+      });
+    }
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (!raw) return clone(SAMPLE);
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return clone(SAMPLE);
+        return {
+          sample: !!parsed.sample,
+          property: parsed.property || 'Property',
+          occupancy: parsed.occupancy != null ? String(parsed.occupancy) : '',
+          arrivals: parsed.arrivals != null ? String(parsed.arrivals) : '',
+          departures: parsed.departures != null ? String(parsed.departures) : '',
+          showCleared: !!parsed.showCleared,
+          hurt: normalizeList(parsed.hurt),
+          miss: normalizeList(parsed.miss),
+          comp: normalizeList(parsed.comp)
+        };
+      } catch (e) {
+        return clone(SAMPLE);
+      }
+    }
+
+    function save() {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    }
+
+    function uid(prefix) {
+      return prefix + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    }
+
+    function todayLabel() {
+      try {
+        return new Intl.DateTimeFormat(undefined, {
+          weekday: 'long', month: 'long', day: 'numeric'
+        }).format(new Date());
+      } catch (e) {
+        return new Date().toDateString();
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderList(kind) {
+      const host = document.getElementById(kind);
+      const items = (state[kind] || []).filter((it) => state.showCleared || !it.cleared);
+      if (!items.length) {
+        host.innerHTML = '<p class="empty">None. + to add.</p>';
+        return;
+      }
+      host.innerHTML = items.map((it) => {
+        const tag = it.sample ? '<span class="tag">SAMPLE</span>' : '';
+        const cls = 'row' + (it.cleared ? ' cleared' : '') + (it.checked ? ' checked' : '');
+        const label = kind === 'comp'
+          ? ([it.who, it.room].filter(Boolean).join(' · ') || 'Comp')
+          : (it.room || '—');
+        const checkLabel = (it.checked ? 'Uncheck ' : 'Check off ') + label;
+        const pressed = it.checked ? 'true' : 'false';
+        const mark = it.checked ? '✓' : '';
+        let body;
+        if (kind === 'comp') {
+          const why = [it.what, it.why].filter(Boolean).join(' — ');
+          const yes = it.approvedBy ? 'Yes: ' + it.approvedBy : '';
+          body = '<div class="room">' + escapeHtml(label) + tag + '</div>' +
+            (why ? '<div class="why">' + escapeHtml(why) + '</div>' : '') +
+            (yes ? '<div class="meta">' + escapeHtml(yes) + '</div>' : '');
+        } else {
+          body = '<div class="room">' + escapeHtml(label) + tag + '</div>' +
+            (it.why ? '<div class="why">' + escapeHtml(it.why) + '</div>' : '');
+        }
+        return '<div class="' + cls + '" data-kind="' + kind + '" data-id="' + escapeHtml(it.id) + '">' +
+          '<button type="button" class="check-hit" aria-pressed="' + pressed + '" aria-label="' + escapeHtml(checkLabel) + '">' +
+          '<span class="box" aria-hidden="true">' + mark + '</span>' +
+          '<span class="copy">' + body + '</span></button>' +
+          '<button type="button" class="edit" data-kind="' + kind + '" data-id="' + escapeHtml(it.id) + '" aria-label="Edit ' + escapeHtml(label) + '">Edit</button>' +
+          '</div>';
+      }).join('');
+    }
+
+    function render() {
+      document.getElementById('date').textContent = todayLabel();
+      document.getElementById('property').textContent = state.property || 'Property';
+      document.getElementById('occ').value = state.occupancy;
+      document.getElementById('arrivals').value = state.arrivals;
+      document.getElementById('departures').value = state.departures;
+      document.getElementById('sample-banner').hidden = !state.sample;
+      document.getElementById('show-cleared').checked = !!state.showCleared;
+      renderList('hurt');
+      renderList('miss');
+      renderList('comp');
+    }
+
+    function findItem(kind, id) {
+      return (state[kind] || []).find((it) => it.id === id);
+    }
+
+    function openSheet(kind, item) {
+      editing = { kind, id: item ? item.id : null, isNew: !item };
+      const spec = LISTS[kind];
+      const title = item ? (item.cleared ? 'Cleared' : 'Edit') : 'Add';
+      document.getElementById('sheet-title').textContent = title + ' · ' + spec.title;
+      const form = document.getElementById('sheet-form');
+      form.room.value = item && item.room ? item.room : '';
+      form.who.value = item && item.who ? item.who : '';
+      form.what.value = item && item.what ? item.what : '';
+      form.why.value = item && item.why ? item.why : '';
+      form.approvedBy.value = item && item.approvedBy ? item.approvedBy : '';
+      ['f-room', 'f-who', 'f-what', 'f-why', 'f-yes'].forEach((id) => {
+        const map = { 'f-room': 'room', 'f-who': 'who', 'f-what': 'what', 'f-why': 'why', 'f-yes': 'approvedBy' };
+        document.getElementById(id).hidden = spec.fields.indexOf(map[id]) === -1;
+      });
+      const dis = document.getElementById('sheet-dismiss');
+      if (!item) {
+        dis.hidden = true;
+      } else {
+        dis.hidden = false;
+        dis.textContent = item.cleared ? 'Restore' : 'Dismiss';
+      }
+      document.getElementById('sheet').hidden = false;
+      const first = spec.fields[0];
+      const el = form.elements[first === 'approvedBy' ? 'approvedBy' : first];
+      if (el) setTimeout(() => el.focus(), 50);
+    }
+
+    function closeSheet() {
+      document.getElementById('sheet').hidden = true;
+      editing = null;
+    }
+
+    function readForm() {
+      const form = document.getElementById('sheet-form');
+      return {
+        room: form.room.value.trim(),
+        who: form.who.value.trim(),
+        what: form.what.value.trim(),
+        why: form.why.value.trim(),
+        approvedBy: form.approvedBy.value.trim()
+      };
+    }
+
+    document.getElementById('sheet-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!editing) return;
+      const vals = readForm();
+      const { kind, id, isNew } = editing;
+      if (isNew) {
+        const item = { id: uid(kind[0]), sample: false, cleared: false, checked: false, ...vals };
+        state[kind].push(item);
+      } else {
+        const item = findItem(kind, id);
+        if (item) Object.assign(item, vals);
+      }
+      save();
+      render();
+      closeSheet();
+    });
+
+    document.getElementById('sheet-cancel').addEventListener('click', closeSheet);
+    document.getElementById('sheet').addEventListener('click', (e) => {
+      if (e.target.id === 'sheet') closeSheet();
+    });
+    document.getElementById('sheet-dismiss').addEventListener('click', () => {
+      if (!editing || !editing.id) return;
+      const item = findItem(editing.kind, editing.id);
+      if (!item) return;
+      item.cleared = !item.cleared;
+      save();
+      render();
+      closeSheet();
+    });
+
+    document.body.addEventListener('click', (e) => {
+      const add = e.target.closest('[data-add]');
+      if (add) {
+        openSheet(add.getAttribute('data-add'), null);
+        return;
+      }
+      const edit = e.target.closest('.edit');
+      if (edit) {
+        const kind = edit.getAttribute('data-kind');
+        const item = findItem(kind, edit.getAttribute('data-id'));
+        if (item) openSheet(kind, item);
+        return;
+      }
+      const hit = e.target.closest('.check-hit');
+      if (hit) {
+        const row = hit.closest('.row');
+        if (!row) return;
+        const kind = row.getAttribute('data-kind');
+        const item = findItem(kind, row.getAttribute('data-id'));
+        if (!item) return;
+        item.checked = !item.checked;
+        save();
+        render();
+      }
+    });
+
+    function bindStat(id, key) {
+      const el = document.getElementById(id);
+      el.addEventListener('change', () => { state[key] = el.value.trim(); save(); });
+      el.addEventListener('blur', () => { state[key] = el.value.trim(); save(); });
+    }
+    bindStat('occ', 'occupancy');
+    bindStat('arrivals', 'arrivals');
+    bindStat('departures', 'departures');
+
+    const prop = document.getElementById('property');
+    prop.addEventListener('blur', () => {
+      const t = prop.textContent.replace(/\s+/g, ' ').trim() || 'Property';
+      state.property = t;
+      prop.textContent = t;
+      save();
+    });
+    prop.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); prop.blur(); }
+    });
+
+    document.getElementById('use-sample').addEventListener('click', () => {
+      state = clone(SAMPLE);
+      save();
+      render();
+    });
+    document.getElementById('clear-mine').addEventListener('click', () => {
+      const name = state.property && state.property !== 'THE HOFFMANN' ? state.property : 'Property';
+      state = clone(EMPTY);
+      state.property = name;
+      save();
+      render();
+    });
+    document.getElementById('show-cleared').addEventListener('change', (e) => {
+      state.showCleared = e.target.checked;
+      save();
+      render();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !document.getElementById('sheet').hidden) closeSheet();
+    });
+
+    render();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
